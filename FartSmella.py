@@ -101,43 +101,48 @@ def format_multi(prefix, string, size=80):
 
 if __name__ == "__main__":
     connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-
+    tb_written =[]
     while True:
         r_data, address = connection.recvfrom(65536)
 
         ef = EthernetFrame(unpack_ef(r_data))
 
-        print("Ethernet Frame:")
-        print(f"\t Destination: {ef.destinationMAC} Source: {ef.sourceMAC} Protocol: {ef.protocol}\n")
+        tb_written.append("Ethernet Frame:")
+        tb_written.append(f"\t Destination: {ef.destinationMAC} Source: {ef.sourceMAC} Protocol: {ef.protocol}\n")
 
         if ef.protocol == IPV4_PROTOCOL:
             packet = Packet(IPV4_PROTOCOL, unpack_ipv4(ef.data))
-            print("\t IPv4 Packet:")
-            print(f"\t\t Version: {packet.version}, Header Length: {packet.headerLength}, Time to Live: {packet.time2Live}\n\t\t - Protocol: {packet.protocol}, Source: {packet.sourceMAC}, Target: {packet.destinationMAC}")
+            tb_written.append("\t IPv4 Packet:")
+            tb_written.append(f"\t\t Version: {packet.version}, Header Length: {packet.headerLength}, Time to Live: {packet.time2Live}\n\t\t - Protocol: {packet.protocol}, Source: {packet.sourceMAC}, Target: {packet.destinationMAC}")
 
             if packet.protocol == ICMP_PROTOCOL:
                 icmp_packet = Packet(ICMP_PROTOCOL, unpack_icmp(packet.data))
-                print("\t ICMP Packet:")
-                print(f"\t\t Type: {icmp_packet.type}, Code: {icmp_packet.code}, Checksum: {icmp_packet.checksum}")
-                print("\t\t Data:")
-                print(format_multi("\t\t\t - ", icmp_packet.data))
+                tb_written.append("\t ICMP Packet:")
+                tb_written.append(f"\t\t Type: {icmp_packet.type}, Code: {icmp_packet.code}, Checksum: {icmp_packet.checksum}")
+                tb_written.append("\t\t Data:")
+                tb_written.append(format_multi("\t\t\t - ", icmp_packet.data))
             elif packet.protocol == TCP_PROTOCOL:
                 tcp_packet = Packet(TCP_PROTOCOL, unpack_tcp(ef.data))
-                print("\t TCP Segment:")
-                print(f"\t\t Source Port: {tcp_packet.sourcePort}, Destination Port: {tcp_packet.destinantionPort}")
-                print(f"\t\t Sequence Number: {tcp_packet.sequenceNum}, Acknowledgement Number: {tcp_packet.acknowledgmentNum}")
+                tb_written.append("\t TCP Segment:")
+                tb_written.append(f"\t\t Source Port: {tcp_packet.sourcePort}, Destination Port: {tcp_packet.destinantionPort}")
+                tb_written.append(f"\t\t Sequence Number: {tcp_packet.sequenceNum}, Acknowledgement Number: {tcp_packet.acknowledgmentNum}")
                 urg, ack, psh, rst, syn, fin = tcp_packet.flags
-                print("\t Flags:")
-                print(f"\t\t URG: {urg}, ACK: {ack}, PSH: {psh}, RST: {rst}, SYN: {syn}, FIN: {fin}")
-                print("\t Data:")
-                print(format_multi("\t\t ", tcp_packet.data))
+                tb_written.append("\t Flags:")
+                tb_written.append(f"\t\t URG: {urg}, ACK: {ack}, PSH: {psh}, RST: {rst}, SYN: {syn}, FIN: {fin}")
+                tb_written.append("\t Data:")
+                tb_written.append(format_multi("\t\t ", tcp_packet.data))
             elif packet.protocol == UDP_PROTOCOL:
                 udp_packet = Packet(UDP_PROTOCOL, unpack_udp(ef.data))
-                print("\t UDP Segment:")
-                print(f"\t\t Source Port: {udp_packet.sourcePort}, Destination Port: {udp_packet.destinantionPort}, Length: {udp_packet.headerLength}")
+                tb_written.append("\t UDP Segment:")
+                tb_written.append(f"\t\t Source Port: {udp_packet.sourcePort}, Destination Port: {udp_packet.destinantionPort}, Length: {udp_packet.headerLength}")
             else:
-                print("\t Data:")
-                print(format_multi("\t\t ", packet.data))
+                tb_written.append("\t Data:")
+                tb_written.append(format_multi("\t\t ", packet.data))
         else:
-            print('Data:')
-            print(format_multi("\t ", ef.data))
+            tb_written.append('Data:')
+            tb_written.append(format_multi("\t ", ef.data))
+        with open('farts_sniffed.log', 'w') as f:
+            for line in tb_written:
+                f.write(line)
+                f.write('\n')
+      
