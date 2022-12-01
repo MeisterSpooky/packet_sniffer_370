@@ -7,37 +7,39 @@ TCP_PROTOCOL = 6
 IPV4_PROTOCOL = 8
 ICMP_PROTOCOL = 1
 UDP_PROTOCOL = 17
+
 class EthernetFrame:
-    def __init__(self, destination_mac, source_mac, protocol, data) -> None:
-        self.destinationMAC = destination_mac
-        self.sourceMAC = source_mac
-        self.protocol = protocol
-        self.data = data
+    def __init__(self, info):
+        self.destinationMAC = info[0]
+        self.sourceMAC = info[1]
+        self.protocol = info[2]
+        self.data = info[3]
 
 class Packet:
-    def __init__(self, protocol, *args):
-        self.data = args[-1]
+    def __init__(self, protocol, info):
+        self.protocol = protocol
+        self.data = info[-1]
         if(protocol == ICMP_PROTOCOL):
-            self.type = args[0]
-            self.code = args[1]
-            self.checksum = args[2]
+            self.type = info[0]
+            self.code = info[1]
+            self.checksum = info[2]
         elif(protocol == TCP_PROTOCOL):
-            self.sourcePort = args[0]
-            self.destinantionPort = args[1]
-            self.sequenceNum = args[2]
-            self.acknowledgmentNum = args[3]
-            self.flags = args[4]
+            self.sourcePort = info[0]
+            self.destinantionPort = info[1]
+            self.sequenceNum = info[2]
+            self.acknowledgmentNum = info[3]
+            self.flags = info[4]
         elif(protocol == IPV4_PROTOCOL):
-            self.version = args[0]
-            self.headerLength = args[1]
-            self.time2Live = args[2]
-            self.protocol = args[3]
-            self.sourceMAC = args[4]
-            self.destinationMAC = args[5]
+            self.version = info[0]
+            self.headerLength = info[1]
+            self.time2Live = info[2]
+            self.protocol = info[3]
+            self.sourceMAC = info[4]
+            self.destinationMAC = info[5]
         elif(protocol == UDP_PROTOCOL):
-            self.sourcePort = args[0]
-            self.destinantionPort = args[1]
-            self.sourcePort = args[2]
+            self.sourcePort = info[0]
+            self.destinantionPort = info[1]
+            self.headerLength = info[2]
 
 def unpack_ef(ef):
     destination_mac, source_mac, protocol = struct.unpack("! 6s 6s H", ef[:14])
@@ -53,7 +55,7 @@ def unpack_ipv4(data):
     vs_header_leng = data[0]
     vers = vs_header_leng >> 4
     head_leng = (vs_header_leng & 15) * 4
-    ttl, protocol, source, target = struct.upack('! 8x B B 2x 4s 4s', data[:20])
+    ttl, protocol, source, target = struct.unpack('! 8x B B 2x 4s 4s', data[:20])
     return vers, head_leng, ttl, protocol, format_ipv4(source), format_ipv4(target), data[head_leng:]
 
 
