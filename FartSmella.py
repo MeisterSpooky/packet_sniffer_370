@@ -1,3 +1,4 @@
+from os import system
 import socket
 import struct
 import textwrap
@@ -96,10 +97,30 @@ def format_multi(prefix, string, size=80):
         if size % 2:
             size -= 1
     return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
+def Title():
+    print(" /$$$$$$$$                   /$$      /$$$$$$            /$$  /$$$$$$   /$$$$$$                   \n\
+            | $$_____/                  | $$     /$$__  $$          |__/ /$$__  $$ /$$__  $$                  \n\
+            | $$    /$$$$$$   /$$$$$$  /$$$$$$  | $$  \__/ /$$$$$$$  /$$| $$  \__/| $$  \__//$$$$$$   /$$$$$$ \n\
+            | $$$$$|____  $$ /$$__  $$|_  $$_/  |  $$$$$$ | $$__  $$| $$| $$$$    | $$$$   /$$__  $$ /$$__  $$\n\
+            | $$__/ /$$$$$$$| $$  \__/  | $$     \____  $$| $$  \ $$| $$| $$_/    | $$_/  | $$$$$$$$| $$  \__/\n\
+            | $$   /$$__  $$| $$        | $$ /$$ /$$  \ $$| $$  | $$| $$| $$      | $$    | $$_____/| $$      \n\
+            | $$  |  $$$$$$$| $$        |  $$$$/|  $$$$$$/| $$  | $$| $$| $$      | $$    |  $$$$$$$| $$      \n\
+            |__/   \_______/|__/         \___/   \______/ |__/  |__/|__/|__/      |__/     \_______/|__/      \n\
+                                                                                                ")
+def Menu():
+    clear_screen()
+    print(f"Welcome to the wireless Fart Smeller")
+    print(f"What would you like to do?")
+    print("\t1 - Sniff Farts")
+    print("\t2 - View Credits")
+    print("\tq - Quit")
+    return input("Selection: ")
+
+def clear_screen():
+    _ = system('clear')
 
 
-
-if __name__ == "__main__":
+if __name__ == "__main__":    
     connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
     while True:
