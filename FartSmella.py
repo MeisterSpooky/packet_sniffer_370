@@ -18,7 +18,7 @@ def unpack_ipv4(data):
     vers = vs_header_leng >> 4
     head_leng = (vs_header_leng & 15) * 4
     ttl, protocol, source, target = struct.upack('! 8x B B 2x 4s 4s', data[:20])
-    return vers, head_leng, ttl, protocol, protocol, format_ipv4(source), format_ipv4(target), data[head_leng:]
+    return vers, head_leng, ttl, protocol, format_ipv4(source), format_ipv4(target), data[head_leng:]
 
 
 def format_ipv4(address):
@@ -43,7 +43,7 @@ def unpack_tcp(data):
             flags[x] = off_res_flag & r
         else:
             flags[x] = (off_res_flag & r) >> shift 
-    return source_port, destination_port, seq, a_numb, tuple(flags), data[offset:]
+    return source_port, destination_port, seq, a_numb, flags, data[offset:]
 
 
 def unpack_udp(data):
@@ -70,4 +70,35 @@ if __name__ == "__main__":
         destination_mac, source_mac, protocol, data = unpack_ef(r_data)
 
         print("Ethernet Frame:")
-        print("Destination: {destination_mac} Source: {source_mac} Protocol: {protocol}\n")
+        print("\t Destination: {destination_mac} Source: {source_mac} Protocol: {protocol}\n")
+
+        if protocol == 8:
+            (vers, head_leng, ttl, protocol, source, target, data) = unpack_ipv4(data)
+            print("\t IPv4 Packet:")
+            print("\t\t Version: {vers}, Header Length: {head_leng}, Time to Live: {ttl}\n\t\t - Protocol: {protocol}, Source: {source}, Target: {target}")
+
+            if protocol == 1:
+                icmp_type, code, checksum, data = unpack_icmp(data)
+                print("\t ICMP Packet:")
+                print("\t\t Type: {icmp_type}, Code: {code}, Checksum: {checksum}")
+                print("\t\t Data:")
+                print(format_multi("\t\t\t - ", data))
+            elif protocol == 6:
+                (source_port, destination_port, seq, a_numb, flags, data) = unpack_tcp(data)
+                print("\t TCP Segment:")
+                print("\t\t Source Port: {source_port}, Destination Port: {destination_port}")
+                print("\t\t Sequence Number: {seq}, Acknowledgement Number: {a_numb}")
+                print("\t Flags:")
+                print("\t\t URG: {flags[0]}, ACK: {flags[1]}, PSH: {flags[2]}, RST: {flags[3]}, SYN: {flags[4]}, FIN: {flags[5]}")
+                print("\t Data:")
+                print(format_multi("\t\t ", data))
+            elif protocol == 17:
+                source_port, destination_port, head_leng, data - unpack_udp(data)
+                print("\t UDP Segment:")
+                print("\t\t Source Port: {source_port}, Destination Port: {destination_port}, Length: {head_leng}")
+            else:
+                print("\t Data:")
+                print(format_multi("\t\t ", data))
+        else:
+            print('Data:')
+            print(format_multi("\t ",data))
