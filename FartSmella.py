@@ -70,4 +70,4 @@ if __name__ == "__main__":
         destination_mac, source_mac, protocol, data = unpack_ef(r_data)
 
         print("Ethernet Frame:")
-        print("Destination: {destination_mac} Source: {source_mac} Protocol: {protocol}\n")
+        print(f"Destination: {destination_mac} Source: {source_mac} Protocol: {protocol}\n")
