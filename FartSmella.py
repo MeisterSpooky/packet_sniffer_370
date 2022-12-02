@@ -70,17 +70,17 @@ def unpack_icmp(data):
 
 def unpack_tcp(data):
     (source_port, destination_port, seq, a_numb, off_res_flag) = struct.unpack('! H H L L H', data[:14])
-    flags = []
-    r = 64
-    shift = 6
+    
     offset = (off_res_flag >> 12) * 4
-    for x in range(6):
-        r = r / 2
-        shift = shift - 1
-        if(shift == 0):
-            flags[x] = off_res_flag & r
-        else:
-            flags[x] = (off_res_flag & r) >> shift 
+    flag_urg = (off_res_flag & 32) >> 5
+    flag_ack = (off_res_flag & 16) >> 5
+    flag_psh = (off_res_flag & 8) >> 5
+    flag_rst = (off_res_flag & 4) >> 5
+    flag_syn = (off_res_flag & 2) >> 5
+    flag_fin = (off_res_flag & 32) >> 5
+
+    flags = [flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin]
+
     return source_port, destination_port, seq, a_numb, flags, data[offset:]
 
 
@@ -102,6 +102,7 @@ def format_multi(prefix, string, size=80):
 if __name__ == "__main__":
     connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
     tb_written =[]
+    f = open('farts_sniffed.log', 'w')
     while True:
         r_data, address = connection.recvfrom(65536)
 
@@ -141,8 +142,10 @@ if __name__ == "__main__":
         else:
             tb_written.append('Data:')
             tb_written.append(format_multi("\t ", ef.data))
-        with open('farts_sniffed.log', 'w') as f:
-            for line in tb_written:
-                f.write(line)
-                f.write('\n')
+        
+        for line in tb_written:
+            f.write(line)
+            f.write('\n')
+    
+    f.close()
       
