@@ -2,7 +2,7 @@ from os import system
 import socket
 import struct
 import textwrap
-from time import sleep
+import time
 
 
 TCP_PROTOCOL = 6
@@ -125,7 +125,7 @@ def clear_screen():
 if __name__ == "__main__":   
 
     Title()
-    sleep(2)
+    time.sleep(2)
     clear_screen()
     selection = 0
 
@@ -134,12 +134,16 @@ if __name__ == "__main__":
         selection = Menu()
 
         if selection == "1":
+            clear_screen()
+            t_end = float(input("How long would you like to take a whiff for? (seconds) -> ")) + time.time()
             
             connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
             tb_written =[]
             f = open('farts_sniffed.log', 'w')
 
-            while True:
+            packet_count = 0
+            print("Here we go!\n")
+            while time.time() < t_end:
                 r_data, address = connection.recvfrom(65536)
 
                 ef = EthernetFrame(unpack_ef(r_data))
@@ -182,8 +186,14 @@ if __name__ == "__main__":
                 for line in tb_written:
                     f.write(line)
                     f.write('\n')
+                packet_count += 1
+                print(f"Number of intercepted packets: {packet_count}")
             
             f.close()
+            print("View the data log for packet information.")
+            input("--Press any key to continue.--")
+
+
         if selection == "2":
             clear_screen()
             Title()
