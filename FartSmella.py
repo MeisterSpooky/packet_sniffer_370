@@ -1,6 +1,8 @@
+from os import system
 import socket
 import struct
 import textwrap
+from time import sleep
 
 
 TCP_PROTOCOL = 6
@@ -97,55 +99,97 @@ def format_multi(prefix, string, size=80):
             size -= 1
     return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
 
+def Title():
+    print("\t /$$$$$$$$                   /$$      /$$$$$$            /$$  /$$$$$$   /$$$$$$                   \n\
+        | $$_____/                  | $$     /$$__  $$          |__/ /$$__  $$ /$$__  $$                  \n\
+        | $$    /$$$$$$   /$$$$$$  /$$$$$$  | $$  \__/ /$$$$$$$  /$$| $$  \__/| $$  \__//$$$$$$   /$$$$$$ \n\
+        | $$$$$|____  $$ /$$__  $$|_  $$_/  |  $$$$$$ | $$__  $$| $$| $$$$    | $$$$   /$$__  $$ /$$__  $$\n\
+        | $$__/ /$$$$$$$| $$  \__/  | $$     \____  $$| $$  \ $$| $$| $$_/    | $$_/  | $$$$$$$$| $$  \__/\n\
+        | $$   /$$__  $$| $$        | $$ /$$ /$$  \ $$| $$  | $$| $$| $$      | $$    | $$_____/| $$      \n\
+        | $$  |  $$$$$$$| $$        |  $$$$/|  $$$$$$/| $$  | $$| $$| $$      | $$    |  $$$$$$$| $$      \n\
+        |__/   \_______/|__/         \___/   \______/ |__/  |__/|__/|__/      |__/     \_______/|__/      \n\
+                                                                                                        ")
+def Menu():
+    clear_screen()
+    print(f"Welcome to the wireless Fart Smeller")
+    print(f"What would you like to do?")
+    print("\t1 - Sniff Farts")
+    print("\t2 - View Credits")
+    print("\tq - Quit")
+    return input("Selection: ")
+
+def clear_screen():
+    _ = system('clear')
 
 
-if __name__ == "__main__":
-    connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-    tb_written =[]
-    f = open('farts_sniffed.log', 'w')
-    while True:
-        r_data, address = connection.recvfrom(65536)
+if __name__ == "__main__":   
 
-        ef = EthernetFrame(unpack_ef(r_data))
+    Title()
+    sleep(2)
+    clear_screen()
+    selection = 0
 
-        tb_written.append("Ethernet Frame:")
-        tb_written.append(f"\t Destination: {ef.destinationMAC} Source: {ef.sourceMAC} Protocol: {ef.protocol}\n")
+    while selection != "q":
 
-        if ef.protocol == IPV4_PROTOCOL:
-            packet = Packet(IPV4_PROTOCOL, unpack_ipv4(ef.data))
-            tb_written.append("\t IPv4 Packet:")
-            tb_written.append(f"\t\t Version: {packet.version}, Header Length: {packet.headerLength}, Time to Live: {packet.time2Live}\n\t\t - Protocol: {packet.protocol}, Source: {packet.sourceMAC}, Target: {packet.destinationMAC}")
+        selection = Menu()
 
-            if packet.protocol == ICMP_PROTOCOL:
-                icmp_packet = Packet(ICMP_PROTOCOL, unpack_icmp(packet.data))
-                tb_written.append("\t ICMP Packet:")
-                tb_written.append(f"\t\t Type: {icmp_packet.type}, Code: {icmp_packet.code}, Checksum: {icmp_packet.checksum}")
-                tb_written.append("\t\t Data:")
-                tb_written.append(format_multi("\t\t\t - ", icmp_packet.data))
-            elif packet.protocol == TCP_PROTOCOL:
-                tcp_packet = Packet(TCP_PROTOCOL, unpack_tcp(ef.data))
-                tb_written.append("\t TCP Segment:")
-                tb_written.append(f"\t\t Source Port: {tcp_packet.sourcePort}, Destination Port: {tcp_packet.destinantionPort}")
-                tb_written.append(f"\t\t Sequence Number: {tcp_packet.sequenceNum}, Acknowledgement Number: {tcp_packet.acknowledgmentNum}")
-                urg, ack, psh, rst, syn, fin = tcp_packet.flags
-                tb_written.append("\t Flags:")
-                tb_written.append(f"\t\t URG: {urg}, ACK: {ack}, PSH: {psh}, RST: {rst}, SYN: {syn}, FIN: {fin}")
-                tb_written.append("\t Data:")
-                tb_written.append(format_multi("\t\t ", tcp_packet.data))
-            elif packet.protocol == UDP_PROTOCOL:
-                udp_packet = Packet(UDP_PROTOCOL, unpack_udp(ef.data))
-                tb_written.append("\t UDP Segment:")
-                tb_written.append(f"\t\t Source Port: {udp_packet.sourcePort}, Destination Port: {udp_packet.destinantionPort}, Length: {udp_packet.headerLength}")
-            else:
-                tb_written.append("\t Data:")
-                tb_written.append(format_multi("\t\t ", packet.data))
-        else:
-            tb_written.append('Data:')
-            tb_written.append(format_multi("\t ", ef.data))
+        if selection == "1":
+            
+            connection = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+            tb_written =[]
+            f = open('farts_sniffed.log', 'w')
+
+            while True:
+                r_data, address = connection.recvfrom(65536)
+
+                ef = EthernetFrame(unpack_ef(r_data))
+
+                tb_written.append("Ethernet Frame:")
+                tb_written.append(f"\t Destination: {ef.destinationMAC} Source: {ef.sourceMAC} Protocol: {ef.protocol}\n")
+
+                if ef.protocol == IPV4_PROTOCOL:
+                    packet = Packet(IPV4_PROTOCOL, unpack_ipv4(ef.data))
+                    tb_written.append("\t IPv4 Packet:")
+                    tb_written.append(f"\t\t Version: {packet.version}, Header Length: {packet.headerLength}, Time to Live: {packet.time2Live}\n\t\t - Protocol: {packet.protocol}, Source: {packet.sourceMAC}, Target: {packet.destinationMAC}")
+
+                    if packet.protocol == ICMP_PROTOCOL:
+                        icmp_packet = Packet(ICMP_PROTOCOL, unpack_icmp(packet.data))
+                        tb_written.append("\t ICMP Packet:")
+                        tb_written.append(f"\t\t Type: {icmp_packet.type}, Code: {icmp_packet.code}, Checksum: {icmp_packet.checksum}")
+                        tb_written.append("\t\t Data:")
+                        tb_written.append(format_multi("\t\t\t - ", icmp_packet.data))
+                    elif packet.protocol == TCP_PROTOCOL:
+                        tcp_packet = Packet(TCP_PROTOCOL, unpack_tcp(ef.data))
+                        tb_written.append("\t TCP Segment:")
+                        tb_written.append(f"\t\t Source Port: {tcp_packet.sourcePort}, Destination Port: {tcp_packet.destinantionPort}")
+                        tb_written.append(f"\t\t Sequence Number: {tcp_packet.sequenceNum}, Acknowledgement Number: {tcp_packet.acknowledgmentNum}")
+                        urg, ack, psh, rst, syn, fin = tcp_packet.flags
+                        tb_written.append("\t Flags:")
+                        tb_written.append(f"\t\t URG: {urg}, ACK: {ack}, PSH: {psh}, RST: {rst}, SYN: {syn}, FIN: {fin}")
+                        tb_written.append("\t Data:")
+                        tb_written.append(format_multi("\t\t ", tcp_packet.data))
+                    elif packet.protocol == UDP_PROTOCOL:
+                        udp_packet = Packet(UDP_PROTOCOL, unpack_udp(ef.data))
+                        tb_written.append("\t UDP Segment:")
+                        tb_written.append(f"\t\t Source Port: {udp_packet.sourcePort}, Destination Port: {udp_packet.destinantionPort}, Length: {udp_packet.headerLength}")
+                    else:
+                        tb_written.append("\t Data:")
+                        tb_written.append(format_multi("\t\t ", packet.data))
+                else:
+                    tb_written.append('Data:')
+                    tb_written.append(format_multi("\t ", ef.data))
+                
+                for line in tb_written:
+                    f.write(line)
+                    f.write('\n')
+            
+            f.close()
+        if selection == "2":
+            clear_screen()
+            Title()
+            print("By javi ty and ticus :)")
+            input("--Press any key to continue.--")
         
-        for line in tb_written:
-            f.write(line)
-            f.write('\n')
-    
-    f.close()
-      
+    clear_screen()
+    print("come back soon ;* <3 !")
+    quit()
