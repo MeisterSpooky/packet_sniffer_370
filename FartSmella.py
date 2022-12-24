@@ -99,6 +99,7 @@ def format_multi(prefix, string, size=80):
             size -= 1
     return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
 
+
 def Title():
     print("\t /$$$$$$$$                   /$$      /$$$$$$            /$$  /$$$$$$   /$$$$$$                   \n\
         | $$_____/                  | $$     /$$__  $$          |__/ /$$__  $$ /$$__  $$                  \n\
